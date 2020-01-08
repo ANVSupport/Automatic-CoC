@@ -1,3 +1,5 @@
+import subprocess
+
 def Parse_Date(messy_date):
 	try:
 		date_list = list(messy_date)
@@ -23,6 +25,11 @@ def Clean(string):
 	string = string.replace("\'","")
 	string = string.replace("b","")
 	return string
+
+def get_logname():
+	return subprocess.check_output("logname").decode("utf-8").replace("\n","")
+def get_hostname():
+	return subprocess.check_output("hostname").decode("utf-8").replace("\n","")
 
 def Prettify_json(formatted_json):
     return str(formatted_json).replace("{","").replace("}","").replace(",","").replace('\"',""  )

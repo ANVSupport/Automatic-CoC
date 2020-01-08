@@ -5,6 +5,7 @@ import logging
 from decimal import Decimal
 import re
 import json
+import organize as organize
 
 """ 			Logger Block, sets up general Logging.			"""
 logger = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ def Get_Hardware_Specifications():
 		cpu_p1 = subprocess.Popen(["cat", "/proc/cpuinfo"], stdout=subprocess.PIPE) 							# pipe into cpu_p2 stdin
 		cpu_p2 = subprocess.Popen(["grep", "-m1", "model name"], stdin=cpu_p1.stdout, stdout=subprocess.PIPE) 	# find cpu name
 		cpu_p1.stdout.close() 																					# close pipe if error
-		cpu_model = Clean(str(cpu_p2.communicate()[0]).split(":")[1])							     	#execute command
+		cpu_model = organize.Clean(str(cpu_p2.communicate()[0]).split(":")[1])							     	#execute command
 	except:
 		logger.warning("Could not Get CPU Name")		
 	# GPU Block
@@ -113,7 +114,7 @@ def Get_Hardware_Specifications():
 			gpu_model = gpu_model_p2.communicate()[0]
 		except:
 			logger.error("Could not Fetch GPU Info")
-	gpu_model = Clean(gpu_model)
+	gpu_model = organize.Clean(gpu_model)
 
 
 	# RAM Block
@@ -124,7 +125,7 @@ def Get_Hardware_Specifications():
 		ram_capacity_KB = Decimal(str(ram_capacity_p2.communicate()[0]).split()[1])
 		ram_capacity_GB = Decimal(ram_capacity_KB/1024)
 		ram_capacity_GB = round(ram_capacity_GB,2)
-		ram_capacity_GB = Clean(ram_capacity_GB)
+		ram_capacity_GB = organize.Clean(ram_capacity_GB)
 	except:
 		logger.error("Could Not Fetch RAM Capacity")
 
@@ -134,27 +135,30 @@ def Get_Hardware_Specifications():
 		hdd_p2 = subprocess.Popen(["grep", "-i", "disk"], stdin=hdd_p1.stdout, stdout=subprocess.PIPE)
 		hdd_p1.stdout.close()
 		hard_drives = str(hdd_p2.communicate()[0])
-		hard_drives = Clean(hard_drives)
+		hard_drives = organize.Clean(hard_drives)
 	except:
 		logger.error("Could not Fetch HDD Info")
 
 	specs_json = {}
 	specs_json["CPU Model"] = cpu_model
 	specs_json["RAM capacity"] = ram_capacity_GB
-	specs_json["hard_drives"] = hard_drives
+	specs_json["Hard Drives"] = hard_drives
 	specs_json["GPU Model"] = gpu_model
 
 	return specs_json
 
-def Check_Installed_Apps(app_list):
+def Check_Installed_Apps(json_filename):
 	installed_apps=[]
 	not_installed_apps=[]
-	for app in app_list:
-		is_installed = shutil.which(app)
+	with open(json_filename, "r") as stream:
+		app_dict = json.load(stream)
+
+	for app_name, apt_install_name in app_dict.items():
+		is_installed = shutil.which(app_name)
 		if is_installed is not None:
-			installed_apps.append(app)
+			installed_apps.append(app_name)
 		else:
-			not_installed_apps.append(app)
+			not_installed_apps.append(apt_install_name)
 	for index, missing_app in enumerate(not_installed_apps):
 		try:
 			print("Installing %s... Please Wait \n\n" % (missing_app,))
@@ -173,12 +177,13 @@ def Check_Installed_Apps(app_list):
 	number_of_installed_apps = 0
 	number_of_not_installed_apps = 0
 	for installed_app in installed_apps:
-		installed_apps_json[installed_app] = " .....Installed    V"
+		installed_apps_json[installed_app] = " .....  Installed    V"
 		number_of_installed_apps = number_of_installed_apps+1
 
 	for not_installed_app in not_installed_apps:
-		installed_apps_json[not_installed_app] = ".....Not Installed    X"
-		number_of_not_installed_apps = number_of_not_installed_apps+1
+		if not_installed_apps is not None:
+			installed_apps_json[not_installed_app] = ".....  Not Installed    X"
+			number_of_not_installed_apps = number_of_not_installed_apps+1
 	logger.info("Installed apps: %d" % (number_of_installed_apps))
 	logger.info("Not Installed Apps: %d" % (number_of_not_installed_apps))
 		
@@ -204,7 +209,7 @@ def Check_License():
 		expiration = str(subprocess.run(["docker", "exec", "-it", backend_container, "license-ver", "-b"]))
 	license_json = {}
 	license_json["System Footprint"] = footprint
-	license_json["License Expiration"] = Parse_Date(expiration)
+	license_json["License Expiration"] = organize.Parse_Date(expiration)
 	return license_json
 
 def Parse_Date(messy_date):
@@ -233,3 +238,5 @@ def Clean(string):
 	string = string.replace("b","")
 	return string
 
+def Prettify_json(formatted_json):
+    return str(formatted_json).replace("{","").replace("}","").replace(",","").replace('\"',""  )

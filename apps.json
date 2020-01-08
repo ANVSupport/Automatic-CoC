@@ -1,0 +1,9 @@
+{
+	"git" : "git",
+	"htop" : "htop",
+	"ifconfig" : "net-tools",
+	"vlc" : "vlc",
+	"curl" : "curl",
+	"teamviewer" : "teamviewer",
+	"ssh-agent" : "openssh-server"
+}

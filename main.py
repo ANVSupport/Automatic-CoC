@@ -1,26 +1,28 @@
-import checks as checks
+import Agents as agent
+import organize as org
 import json
-# A Script that generates a report about the Info Needed for CoC
-# Written By Gilad Ben-Nun
-# All checking functions are in the check.py file
-
+"""
+ A Script that generates a report about the Info Needed for CoC
+ Written By Gilad Ben-Nun
+ All checking functions are in the Agents.py file
+"""
 
 def main():
 	Report = {}
-	apps = ["git", "htop", "figlet"]
-	license_details = checks.Check_License()
+	license_details = agent.Check_License()
 	if license_details is None:
 		license_details = "Error fetching license data.. is BT isntalled?"
 
 
-	Report["Hardware Details"] = checks.Get_Hardware_Specifications()
-	Report["Installed Apps"] = checks.Check_Installed_Apps(apps)
+	Report["Hardware Details"] = agent.Get_Hardware_Specifications()
+	Report["Installed Apps"] = agent.Check_Installed_Apps("apps.json")
 	Report["License"] = license_details
-	Report["Yaml Edits"] = checks.Check_Modified_Files()
-	Report["Fstab Entry"] = checks.Check_Storage_Mount()
+	Report["Yaml Edits"] = agent.Check_Modified_Files()
+	Report["Fstab Entry"] = agent.Check_Storage_Mount()
 
-	formatted_Report = json.dumps(Report, indent=3)
-	print(formatted_Report)
+	print(org.Prettify_json(json.dumps(Report, indent=3)))
+
+
 
 
 if __name__ == '__main__':

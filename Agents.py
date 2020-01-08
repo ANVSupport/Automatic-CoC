@@ -16,6 +16,17 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
+def Test_Moxa_Permissions():
+	logname = subprocess.check_output("logname").decode("utf-8").replace("\n","")
+	cameraListjson = "/home/%s/moxa-config/cameraList.json" % (logname)
+	moxascript = "/home/%s/moxa-config/moxa_e1214.sh" % (logname)
+	json_Permissions = subprocess.check_output(["bash", "PermissionTester.sh", cameraListjson]).decode("utf-8").strip()
+	moxa_Permissions = subprocess.check_output(["bash", "PermissionTester.sh", moxascript]).decode("utf-8").strip()
+	permissions = {}
+	permissions[cameraListjson] = json_Permissions
+	permissions[moxascript] = moxa_Permissions
+	return permissions
+
 
 
 def Check_Modified_Files():
@@ -27,10 +38,14 @@ def Check_Modified_Files():
 	yaml_json = {}
 	hostname = subprocess.check_output("hostname").decode("utf-8").replace("\n","")
 	logname = subprocess.check_output("logname").decode("utf-8").replace("\n","")
-
-	docker_compose_yaml  = "/home/%s/docker-compose/1.20.0/docker-compose.yml" % logname
+	docker_compose_path = "/home/"+logname+"/docker-compose/"
+	docker_version = subprocess.check_output(["ls", docker_compose_path]).decode("utf-8").strip()
+	dockerfile = subprocess.run(["find", docker_compose_path, "-regextype", "posix-extended", "-regex", 
+		".*docker\\-compose\\-(local\\-)?gpu\\.yml"],
+		 stdout=subprocess.PIPE)
+	docker_compose_yaml = dockerfile.stdout.decode("utf-8").strip()
 	profile_file = "/home/%s/.profile" % logname
-	broadcaster_file = "/home/%s/docker-compose/1.20.0/env/broadcaster.env" % logname
+	broadcaster_file = docker_compose_path+"env/broadcaster.env"
 	"""
 	Sets Terms to search in those files
 
@@ -63,10 +78,11 @@ def Check_Modified_Files():
 	except FileNotFoundError as err:
 		logger.error("Error While Openig YAML and profile files: \n \t\t %s" % (err))
 		return yaml_json
-	yaml_json["hostname"] = hostname
-	yaml_json[nginx_hostname] = nginx_count
-	yaml_json[api_hostname] = api_count
+	yaml_json["Hostname"] = hostname
+	yaml_json[nginx_hostname] = str(nginx_count)+"/3"
+	yaml_json[api_hostname] = str(api_count)+"/7"
 	yaml_json[moxa_mount_path] = moxa_mount_count
+	yaml_json["Moxa Permissions"] = Test_Moxa_Permissions()
 	yaml_json["xhost + inside .profile"] = xhost_count
 	yaml_json["Are Broadcaster edits present"] = are_broadcaster_lines_correct
 	return yaml_json
@@ -123,7 +139,7 @@ def Get_Hardware_Specifications():
 		ram_capacity_p2 = subprocess.Popen(["grep", "-i", "memtotal"], stdin=ram_capacity_p1.stdout, stdout=subprocess.PIPE)
 		ram_capacity_p1.stdout.close()
 		ram_capacity_KB = Decimal(str(ram_capacity_p2.communicate()[0]).split()[1])
-		ram_capacity_GB = Decimal(ram_capacity_KB/1024)
+		ram_capacity_GB = Decimal(ram_capacity_KB/1024/1024)
 		ram_capacity_GB = round(ram_capacity_GB,2)
 		ram_capacity_GB = organize.Clean(ram_capacity_GB)
 	except:
@@ -141,7 +157,7 @@ def Get_Hardware_Specifications():
 
 	specs_json = {}
 	specs_json["CPU Model"] = cpu_model
-	specs_json["RAM capacity"] = ram_capacity_GB
+	specs_json["RAM capacity"] = str(ram_capacity_GB)+" GB"
 	specs_json["Hard Drives"] = hard_drives
 	specs_json["GPU Model"] = gpu_model
 

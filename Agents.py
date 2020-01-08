@@ -40,12 +40,13 @@ def Check_Modified_Files():
 	logname = subprocess.check_output("logname").decode("utf-8").replace("\n","")
 	docker_compose_path = "/home/"+logname+"/docker-compose/"
 	docker_version = subprocess.check_output(["ls", docker_compose_path]).decode("utf-8").strip()
+	docker_compose_path = str(docker_compose_path)+str(docker_version)+"/"
 	dockerfile = subprocess.run(["find", docker_compose_path, "-regextype", "posix-extended", "-regex", 
 		".*docker\\-compose\\-(local\\-)?gpu\\.yml"],
 		 stdout=subprocess.PIPE)
 	docker_compose_yaml = dockerfile.stdout.decode("utf-8").strip()
 	profile_file = "/home/%s/.profile" % logname
-	broadcaster_file = docker_compose_path+docker_version+"/env/broadcaster.env"
+	broadcaster_file = docker_compose_path+"/env/broadcaster.env"
 	"""
 	Sets Terms to search in those files
 
@@ -83,7 +84,7 @@ def Check_Modified_Files():
 	yaml_json["Hostname"] = hostname
 	yaml_json[nginx_hostname] = str(nginx_count)+"/3"
 	yaml_json[api_hostname] = str(api_count)+"/7"
-	yaml_json[moxa_mount_path] = moxa_mount_count
+	yaml_json[moxa_mount_path] = "    "+str(moxa_mount_count)+"/1"
 	yaml_json["Moxa Permissions"] = Test_Moxa_Permissions()
 	yaml_json["xhost + inside .profile"] = xhost_count
 	yaml_json["Are Broadcaster edits present"] = are_broadcaster_lines_correct
@@ -152,8 +153,9 @@ def Get_Hardware_Specifications():
 		hdd_p1 = subprocess.Popen(["lsblk", "-io", "SIZE,TYPE,KNAME"], stdout=subprocess.PIPE)
 		hdd_p2 = subprocess.Popen(["grep", "-i", "disk"], stdin=hdd_p1.stdout, stdout=subprocess.PIPE)
 		hdd_p1.stdout.close()
-		hard_drives = str(hdd_p2.communicate()[0])
-		hard_drives = organize.Clean(hard_drives)
+		hard_drives = str(hdd_p2.communicate()[0].decode("utf-8"))
+		hard_drives = hard_drives.split(sep="\n")
+		#hard_drives = organize.Clean(hard_drives)
 	except:
 		logger.error("Could not Fetch HDD Info")
 
@@ -218,12 +220,14 @@ def Check_License():
 		backend_p1.stdout.close()
 		backend_container = str(backend_p2.communicate()).replace("(b\'","")
 		backend_container = backend_container.split()[0]
-		print(backend_container)
 		# backend_container = subprocess.run("docker ps", "grep backend_", "awk '{print $1}'") # If it's docker-compose, extracts backend container
 
 	except:
 		try:
-			backend_pod = subprocess.run("kubectl get pod", "grep edge-0", "awk '{print $1}'") # If it's kubernetes, extract backend pod
+			backend_p1 = subprocess.Popen(["kubectl", "get", "pod"], stdout=subprocess.PIPE)
+			backend_p2 = subprocess.Popen(["grep", "edge-0"], stdin=backend_p1.stdout, stdout=subprocess.PIPE)
+			backend_p1.stdout.close()
+			backend_pod = str(backend_p2.communicate()[0]).split()[0]
 		except:
 			logger.error("Error While Extracting Backend Container/pod")
 		else:

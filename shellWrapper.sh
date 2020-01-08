@@ -9,6 +9,6 @@ command -v python3 >/dev/null 2>&1 ||
 }
 git clone https://github.com/ANVSupport/Automatic-CoC
 cp Automatic-CoC/apps.json /tmp/apps.json
-chmod +x PermissionTester.sh
+chmod +x ./PermissionTester.sh
 python3 Automatic-CoC/main.py && exit 0
 exit 1

@@ -211,13 +211,19 @@ def Check_License():
 	footprint = None
 	expiration = None
 	try:
-		backend_container = subprocess.run("docker ps", "grep backend_", "awk '{print $1}'") # If it's docker-compose, extracts backend container
+		backend_p1 = subprocess.Popen(["docker", "ps"], stdout=subprocess.PIPE)
+		backend_p2 = subprocess.Popen(["grep", "-i", "backend_"], stdin=backend_p1.stdout, stdout=subprocess.PIPE)
+		backend_p1.stdout.close()
+		backend_container = str(backend_p2.communicate()[0])
+		backend_container = backend_container.split()[0]
+		# backend_container = subprocess.run("docker ps", "grep backend_", "awk '{print $1}'") # If it's docker-compose, extracts backend container
+
 	except:
 		try:
 			backend_pod = subprocess.run("kubectl get pod", "grep edge-0", "awk '{print $1}'") # If it's kubernetes, extract backend pod
 		except:
 			logger.error("Error While Extracting Backend Container/pod")
-		else:
+		else:s
 			footprint = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -o' ").stdout)
 			expiration = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -b' ").stdout)
 	else:	
@@ -233,7 +239,7 @@ def Parse_Date(messy_date):
 		date_list = list(messy_date)
 	except TypeError as err:
 		return "No Date"
-	Year = None
+	Year = Nones
 	Months = None
 	Days = None
 	Date = None

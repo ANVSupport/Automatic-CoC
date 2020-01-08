@@ -45,7 +45,7 @@ def Check_Modified_Files():
 		 stdout=subprocess.PIPE)
 	docker_compose_yaml = dockerfile.stdout.decode("utf-8").strip()
 	profile_file = "/home/%s/.profile" % logname
-	broadcaster_file = docker_compose_path+"env/broadcaster.env"
+	broadcaster_file = docker_compose_path+docker_version+"/env/broadcaster.env"
 	"""
 	Sets Terms to search in those files
 
@@ -68,6 +68,8 @@ def Check_Modified_Files():
 			xhost_count = content.find("xhost +")
 			if xhost_count is -1:
 				xhost_count = "Not found"
+			else:
+				xhost_count = "Found"
 
 		with open(broadcaster_file, 'r') as stream:
 			content = stream.read()
@@ -119,7 +121,7 @@ def Get_Hardware_Specifications():
 		logger.warning("Could not Get CPU Name")		
 	# GPU Block
 	try:
-		gpu_model = subprocess.Popen(["nvidia-smi", "--list-gpus"], stdout=subprocess.DEVNULL)
+		gpu_model = subprocess.Popen(["nvidia-smi", "--list-gpus"], stdout=subprocess.PIPE)
 		gpu_model = str(gpu_model.communicate()[0])
 	except:
 		logger.warning("Can't cummunicate with nvidia GPU")
@@ -214,8 +216,9 @@ def Check_License():
 		backend_p1 = subprocess.Popen(["docker", "ps"], stdout=subprocess.PIPE)
 		backend_p2 = subprocess.Popen(["grep", "-i", "backend_"], stdin=backend_p1.stdout, stdout=subprocess.PIPE)
 		backend_p1.stdout.close()
-		backend_container = str(backend_p2.communicate()[0])
+		backend_container = str(backend_p2.communicate()).replace("(b\'","")
 		backend_container = backend_container.split()[0]
+		print(backend_container)
 		# backend_container = subprocess.run("docker ps", "grep backend_", "awk '{print $1}'") # If it's docker-compose, extracts backend container
 
 	except:
@@ -223,12 +226,12 @@ def Check_License():
 			backend_pod = subprocess.run("kubectl get pod", "grep edge-0", "awk '{print $1}'") # If it's kubernetes, extract backend pod
 		except:
 			logger.error("Error While Extracting Backend Container/pod")
-		else:s
+		else:
 			footprint = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -o' ").stdout)
 			expiration = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -b' ").stdout)
-	else:	
-		footprint = str(subprocess.run(["docker", "exec", "-it", backend_container, "license-ver", "-o"]))
-		expiration = str(subprocess.run(["docker", "exec", "-it", backend_container, "license-ver", "-b"]))
+	else:
+		footprint = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-o"]).decode("utf-8").strip())
+		expiration = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-b"]).decode("utf-8").strip())
 	license_json = {}
 	license_json["System Footprint"] = footprint
 	license_json["License Expiration"] = organize.Parse_Date(expiration)

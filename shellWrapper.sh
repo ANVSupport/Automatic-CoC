@@ -27,7 +27,7 @@ chmod +x Automatic-CoC/PermissionTester.sh
 if [[ ! -z $TYPE ]]; then
 	echo "TYPE IS"
 	echo $TYPE
-	python3 main.py --type $TYPE && exit 0
+	python3 Automatic-CoC/main.py --type $TYPE && exit 0
 else
 	echo "NO TYPE"
 	python3 Automatic-CoC/main.py && exit 0

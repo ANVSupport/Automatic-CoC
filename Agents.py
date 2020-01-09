@@ -5,7 +5,8 @@ import logging
 from decimal import Decimal
 import re
 import json
-import organize as organize
+import organize as org
+from datetime import datetime
 
 """ 			Logger Block, sets up general Logging.			"""
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ formatter = logging.Formatter("%(asctime)-15s [%(levelname)s] %(funcName)s: %(me
 file_handler = logging.FileHandler('coc.log')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+logger.info("Report Started On %s" % (str(datetime.now().strftime("%b %d %Y %H:%M:%S"))))
 
 
 def Test_Moxa_Permissions():
@@ -117,7 +119,7 @@ def Get_Hardware_Specifications():
 		cpu_p1 = subprocess.Popen(["cat", "/proc/cpuinfo"], stdout=subprocess.PIPE) 							# pipe into cpu_p2 stdin
 		cpu_p2 = subprocess.Popen(["grep", "-m1", "model name"], stdin=cpu_p1.stdout, stdout=subprocess.PIPE) 	# find cpu name
 		cpu_p1.stdout.close() 																					# close pipe if error
-		cpu_model = organize.Clean(str(cpu_p2.communicate()[0]).split(":")[1])							     	#execute command
+		cpu_model = org.Clean(str(cpu_p2.communicate()[0]).split(":")[1])							     	#execute command
 	except:
 		logger.warning("Could not Get CPU Name")		
 	# GPU Block
@@ -133,7 +135,7 @@ def Get_Hardware_Specifications():
 			gpu_model = gpu_model_p2.communicate()[0]
 		except:
 			logger.error("Could not Fetch GPU Info")
-	gpu_model = organize.Clean(gpu_model)
+	gpu_model = org.Clean(gpu_model)
 
 
 	# RAM Block
@@ -144,7 +146,7 @@ def Get_Hardware_Specifications():
 		ram_capacity_KB = Decimal(str(ram_capacity_p2.communicate()[0]).split()[1])
 		ram_capacity_GB = Decimal(ram_capacity_KB/1024/1024)
 		ram_capacity_GB = round(ram_capacity_GB,2)
-		ram_capacity_GB = organize.Clean(ram_capacity_GB)
+		ram_capacity_GB = org.Clean(ram_capacity_GB)
 	except:
 		logger.error("Could Not Fetch RAM Capacity")
 
@@ -156,7 +158,7 @@ def Get_Hardware_Specifications():
 		hard_drives = str(hdd_p2.communicate()[0].decode("utf-8"))
 		hard_drives = hard_drives.replace("disk ", "at /dev/")
 		hard_drives = hard_drives.split(sep="\n")
-		#hard_drives = organize.Clean(hard_drives)
+		#hard_drives = org.Clean(hard_drives)
 	except:
 		logger.error("Could not Fetch HDD Info")
 
@@ -212,7 +214,6 @@ def Check_Installed_Apps(json_filename):
 	return installed_apps_json
 
 def Check_License():
-	# Needs testing on Various BT machines...
 	footprint = None
 	expiration = None
 	try:
@@ -228,16 +229,20 @@ def Check_License():
 
 	except:
 		try:
-			backend_p1 = subprocess.Popen(["kubectl", "get", "pod"], stdout=subprocess.PIPE)
-			backend_p2 = subprocess.Popen(["grep", "edge-0"], stdin=backend_p1.stdout, stdout=subprocess.PIPE)
-			backend_p1.stdout.close()
-			backend_pod = str(backend_p2.communicate()[0]).split()[0]
-			footprint = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -o' ").stdout)
-			expiration = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -b' ").stdout)
+			edge_p1 = subprocess.Popen(["kubectl", "get", "pod"], stdout=subprocess.PIPE)
+			edge_p2= subprocess.Popen(["grep", "edge-0"], stdin=edge_p1.stdout, stdout=subprocess.PIPE)
+			edge_p1.stdout.close()
+			edge_pod = str(edge_p2.communicate()[0]).split()[0]
+			if "edge" in edge_pod:
+				footprint = str(subprocess.check_output(["kubectl", "exec", "-it", edge_pod, "-c", "edge", "--", "bash", "-c", "/usr/local/bin/license-ver", "-o"]).decode("utf-8").strip())
+				expiration = str(subprocess.check_output(["kubectl", "exec", "-it", edge_pod, "-c", "edge", "--", "bash", "-c", "/usr/local/bin/license-ver", "-b"]).decode("utf-8").strip())
 		except:
 			logger.error("Error While Extracting Backend Container/pod")
-	license_json = {}
-	license_json["System Footprint"] = footprint
-	license_json["License Expiration"] = organize.Parse_Date(expiration)
-	return license_json
+	if footprint is not None and expiration is not None:
+		license_json = {}
+		license_json["System Footprint"] = footprint
+		license_json["License Expiration"] = org.Parse_Date(expiration)
+		return license_json
+	else:
+		return None
 

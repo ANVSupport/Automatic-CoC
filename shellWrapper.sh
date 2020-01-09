@@ -7,10 +7,29 @@ command -v python3 >/dev/null 2>&1 ||
 { echo >&2 "Python is not installed. Installing..";
   apt install -y -qq python3 > /dev/null && echo "Python Installed"
 }
+unset TYPE
+args=("$@")
+for index in "${args[@]}" # Built with case for scalability, for when I add more argument options
+do
+    case $index in 
+        "-t"|"--type")
+            TYPE="${args[((i+1))]}"
+        ;;
+    esac
+    ((i++))
+done
+
 echo "This Script requires root permissions to run correctly, please enter your password here:"
 sudo chmod 666 /var/run/docker.sock
 git clone https://github.com/ANVSupport/Automatic-CoC
 cp Automatic-CoC/apps.json /tmp/apps.json
 chmod +x Automatic-CoC/PermissionTester.sh
-python3 Automatic-CoC/main.py --type SG && exit 0
+if [[ ! -z $TYPE ]]; then
+	echo "TYPE IS"
+	echo $TYPE
+	python3 main.py --type $TYPE && exit 0
+else
+	echo "NO TYPE"
+	python3 Automatic-CoC/main.py && exit 0
+fi
 exit 1

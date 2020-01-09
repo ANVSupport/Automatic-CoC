@@ -13,25 +13,27 @@ import sys
 
 def main():
 	is_Safeguard = False
-	for arg, index in enumerate(sys.argv):
-		if arg is "--type":
+	for index, arg in enumerate(sys.argv):
+		if "type" in arg:
 			try:
-				if sys.argv[index+1] is "SG":
+				if "SG" in sys.argv[index+1]:
 					is_Safeguard = True
 			except:
 				print("Invalid Arguments") 
-
+	Checker_name = input("Enter You name: ")
 	Report = {}
 	license_details = agent.Check_License()
 	if license_details is None:
 		license_details = "Error fetching license data.. is BT installed?"
 
-	Report["Created On"] = str(datetime.now())
+	Report["Created On"] = str(datetime.now().strftime("%b %d %Y %H:%M:%S"))
+	Report["Checked By"] = str(Checker_name)
 	Report["Hardware Details"] = agent.Get_Hardware_Specifications()
 	Report["Installed Apps"] = agent.Check_Installed_Apps("/tmp/apps.json")
 	Report["License"] = license_details
 	Report["Fstab Entry"] = agent.Check_Storage_Mount()
 	if is_Safeguard:
+		print("entered SG")
 		Report["Yaml Edits"] = agent.Check_Modified_Files()
 	#print("Writing this to file:")
 	#print(org.Prettify_json(json.dumps(Report, indent=3)))

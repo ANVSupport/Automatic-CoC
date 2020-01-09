@@ -5,6 +5,10 @@ to run the script one-liner style, run the following:
 ```shellscript
 wget -qO- https://raw.githubusercontent.com/ANVSupport/Automatic-CoC/master/shellWrapper.sh | bash --
 ```
+## Running this script For Safeguard Machines
+```shellscript
+wget -qO- https://raw.githubusercontent.com/ANVSupport/Automatic-CoC/master/shellWrapper.sh | bash -- --type SG
+```
 To run the script first clone the repo, then run 
 ```shellscript
 python3 main.py

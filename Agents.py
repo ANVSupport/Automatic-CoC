@@ -154,6 +154,7 @@ def Get_Hardware_Specifications():
 		hdd_p2 = subprocess.Popen(["grep", "-i", "disk"], stdin=hdd_p1.stdout, stdout=subprocess.PIPE)
 		hdd_p1.stdout.close()
 		hard_drives = str(hdd_p2.communicate()[0].decode("utf-8"))
+		hard_drives = hard_drives.replace("disk ", "at /dev/")
 		hard_drives = hard_drives.split(sep="\n")
 		#hard_drives = organize.Clean(hard_drives)
 	except:
@@ -220,6 +221,9 @@ def Check_License():
 		backend_p1.stdout.close()
 		backend_container = str(backend_p2.communicate()).replace("(b\'","")
 		backend_container = backend_container.split()[0]
+		if "backend" in backend_container:
+			footprint = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-o"]).decode("utf-8").strip())
+			expiration = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-b"]).decode("utf-8").strip())
 		# backend_container = subprocess.run("docker ps", "grep backend_", "awk '{print $1}'") # If it's docker-compose, extracts backend container
 
 	except:
@@ -228,44 +232,12 @@ def Check_License():
 			backend_p2 = subprocess.Popen(["grep", "edge-0"], stdin=backend_p1.stdout, stdout=subprocess.PIPE)
 			backend_p1.stdout.close()
 			backend_pod = str(backend_p2.communicate()[0]).split()[0]
-		except:
-			logger.error("Error While Extracting Backend Container/pod")
-		else:
 			footprint = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -o' ").stdout)
 			expiration = str(subprocess.run("kubectl exec -it backend_pod -c edge -- bash -c '/usr/local/bin/license-ver -b' ").stdout)
-	else:
-		footprint = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-o"]).decode("utf-8").strip())
-		expiration = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-b"]).decode("utf-8").strip())
+		except:
+			logger.error("Error While Extracting Backend Container/pod")
 	license_json = {}
 	license_json["System Footprint"] = footprint
 	license_json["License Expiration"] = organize.Parse_Date(expiration)
 	return license_json
 
-def Parse_Date(messy_date):
-	try:
-		date_list = list(messy_date)
-	except TypeError as err:
-		return "No Date"
-	Year = Nones
-	Months = None
-	Days = None
-	Date = None
-	try:
-		Year = "".join(date_list[0:4])
-		Months = "".join(date_list[4:6])
-		Days = "".join(date_list[6:8])
-		Date = "%s - %s - %s" % (Days, Months, Year)
-	except Exception as err:
-		print(err)
-	return Date
-
-def Clean(string):
-	string =  str(string)
-	string = ' '.join(string.split()) # Replaces multipile white spaces with one.
-	string = string.replace("\\n", "")
-	string = string.replace("\'","")
-	string = string.replace("b","")
-	return string
-
-def Prettify_json(formatted_json):
-    return str(formatted_json).replace("{","").replace("}","").replace(",","").replace('\"',""  )

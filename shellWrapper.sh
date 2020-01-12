@@ -20,8 +20,7 @@ do
 done
 echo -n "Please Enter your name:"
 read NAME
-if [ "$EUID" -ne 0 ]
-then
+if [[ "$EUID" -ne 0 ]]; then
 	echo "This Script requires root permissions to run correctly, please enter your password here:"
 	echo ""
 fi

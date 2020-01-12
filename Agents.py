@@ -44,10 +44,18 @@ def Check_Modified_Files():
 	docker_compose_path = "/home/"+logname+"/docker-compose/"
 	docker_version = subprocess.check_output(["ls", docker_compose_path]).decode("utf-8").strip()
 	docker_compose_path = str(docker_compose_path)+str(docker_version)+"/"
-	dockerfile = subprocess.run(["find", docker_compose_path, "-regextype", "posix-extended", "-regex", 
+	try:
+		with open(str(docker_compose_path+"docker-compose.yml")):
+			pass
+		docker_compose_yaml = str(docker_compose_path+"docker-compose.yml")
+	except IOError:
+		print("docker-compose.yml Not Found... using This instead:")
+		dockerfile = subprocess.run(["find", docker_compose_path, "-regextype", "posix-extended", "-regex", 
 		".*docker\\-compose\\-(local\\-)?gpu\\.yml"],
 		 stdout=subprocess.PIPE)
-	docker_compose_yaml = dockerfile.stdout.decode("utf-8").strip()
+		docker_compose_yaml = dockerfile.stdout.decode("utf-8").strip()
+		print(docker_compose_yaml)
+	
 	profile_file = "/home/%s/.profile" % logname
 	broadcaster_file = docker_compose_path+"/env/broadcaster.env"
 	"""

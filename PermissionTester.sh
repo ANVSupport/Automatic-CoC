@@ -15,7 +15,7 @@ else
      chmod 777 "$1"
      if [[ -x "$1" ]] && [[ -r "$1" ]] && [[ -w "$1" ]]
      then
-     	echo "rwx Permissions"
+     	echo "Permissions: rwx (777)"
      else
      	echo "Missing permissions, Could not fix"
      	exit

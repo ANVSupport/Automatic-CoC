@@ -35,7 +35,6 @@ def main():
 	Report["License"] = license_details
 	Report["Fstab Entry"] = agent.Check_Storage_Mount()
 	if is_Safeguard:
-		print("entered SG")
 		Report["Yaml Edits"] = agent.Check_Modified_Files()
 	#print("Writing this to file:")
 	#print(org.Prettify_json(json.dumps(Report, indent=3)))

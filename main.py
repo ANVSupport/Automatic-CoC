@@ -21,7 +21,12 @@ def main():
 					print("Type set as SG")
 			except:
 				print("Invalid Arguments") 
-	Checker_name = input("Enter You name: ")
+		if "name" in arg:
+			try:
+				Checker_name = sys.are[index+1]
+			except:
+				print("Invalid Arguments") 
+
 	Report = {}
 	license_details = agent.Check_License()
 	if license_details is None:

@@ -18,6 +18,8 @@ do
     esac
     ((i++))
 done
+echo "Please Enter your name:"
+read "$NAME"
 if [ "$EUID" -ne 0 ]; then
 	echo "This Script requires root permissions to run correctly, please enter your password here:"
 fi
@@ -29,7 +31,7 @@ cd ..                      ## And this
 cp Automatic-CoC/apps.json /tmp/apps.json || exit 1
 chmod +x Automatic-CoC/PermissionTester.sh
 if [[ ! -z $TYPE ]]; then
-	python3 Automatic-CoC/main.py --type "${TYPE}" && exit 0
+	python3 Automatic-CoC/main.py --type "${TYPE}" --name "${NAME}" && exit 0
 else
 	python3 Automatic-CoC/main.py && exit 0
 fi

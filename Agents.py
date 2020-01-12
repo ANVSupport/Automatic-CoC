@@ -23,8 +23,8 @@ def Test_Moxa_Permissions():
 	logname = subprocess.check_output("logname").decode("utf-8").replace("\n","")
 	cameraListjson = "/home/%s/moxa-config/cameraList.json" % (logname)
 	moxascript = "/home/%s/moxa-config/moxa_e1214.sh" % (logname)
-	json_Permissions = subprocess.check_output(["bash", "PermissionTester.sh", cameraListjson]).decode("utf-8").strip()
-	moxa_Permissions = subprocess.check_output(["bash", "PermissionTester.sh", moxascript]).decode("utf-8").strip()
+	json_Permissions = subprocess.check_output(["bash", "./PermissionTester.sh", cameraListjson]).decode("utf-8").strip()
+	moxa_Permissions = subprocess.check_output(["bash", "./PermissionTester.sh", moxascript]).decode("utf-8").strip()
 	permissions = {}
 	permissions[cameraListjson] = json_Permissions
 	permissions[moxascript] = moxa_Permissions

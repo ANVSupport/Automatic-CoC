@@ -7,6 +7,7 @@ import re
 import json
 import organize as org
 from datetime import datetime
+import socket
 
 """ 			Logger Block, sets up general Logging.			"""
 logger = logging.getLogger(__name__)
@@ -121,7 +122,7 @@ def Get_Hardware_Specifications():
 		cpu_p1.stdout.close() 																					# close pipe if error
 		cpu_model = org.Clean(str(cpu_p2.communicate()[0]).split(":")[1])							     	#execute command
 	except:
-		logger.warning("Could not Get CPU Name")		
+		logger.warning("Could not Get CPU Name")
 	# GPU Block
 	try:
 		gpu_model = subprocess.Popen(["nvidia-smi", "--list-gpus"], stdout=subprocess.PIPE)
@@ -245,3 +246,7 @@ def Check_License():
 	else:
 		return None
 
+def Get_IP_Address():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    return s.getsockname()[0]

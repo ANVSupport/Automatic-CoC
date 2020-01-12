@@ -22,14 +22,11 @@ done
 echo "This Script requires root permissions to run correctly, please enter your password here:"
 sudo chmod 666 /var/run/docker.sock
 git clone https://github.com/ANVSupport/Automatic-CoC
-cp Automatic-CoC/apps.json /tmp/apps.json
+cp Automatic-CoC/apps.json /tmp/apps.json || exit 1
 chmod +x Automatic-CoC/PermissionTester.sh
 if [[ ! -z $TYPE ]]; then
-	echo "TYPE IS"
-	echo $TYPE
-	python3 Automatic-CoC/main.py --type $TYPE && exit 0
+	python3 Automatic-CoC/main.py --type "${TYPE}" && exit 0
 else
-	echo "NO TYPE"
 	python3 Automatic-CoC/main.py && exit 0
 fi
 exit 1

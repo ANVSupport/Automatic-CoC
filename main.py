@@ -18,6 +18,7 @@ def main():
 			try:
 				if "SG" in sys.argv[index+1]:
 					is_Safeguard = True
+					print("Type set as SG")
 			except:
 				print("Invalid Arguments") 
 	Checker_name = input("Enter You name: ")
@@ -25,9 +26,10 @@ def main():
 	license_details = agent.Check_License()
 	if license_details is None:
 		license_details = "Error fetching license data.. is BT installed?"
-
-	Report["Created On"] = str(datetime.now().strftime("%b %d %Y %H:%M:%S"))
-	Report["Checked By"] = str(Checker_name)
+	Report_Details = {}
+	Report_Details["Created On"] = str(datetime.now().strftime("%b %d %Y %H:%M:%S"))
+	Report_Details["Checked By"] = str(Checker_name)
+	Report["Report Details"] = Report_Details
 	Report["Hardware Details"] = agent.Get_Hardware_Specifications()
 	Report["Installed Apps"] = agent.Check_Installed_Apps("/tmp/apps.json")
 	Report["License"] = license_details
@@ -41,6 +43,10 @@ def main():
 	with open(report_path, "w") as report_file:
 		report_file.write(org.Prettify_json(json.dumps(Report, indent=3)))
 	print("Report written to %s" % (report_path))
+	API_Details = {}
+	API_Details["Details for API Integration"] = ""
+	API_Details[str(org.get_hostname())] = agent.Get_IP_Address()
+	print(org.Prettify_json(json.dumps(API_Details, indent=3)))
 
 
 

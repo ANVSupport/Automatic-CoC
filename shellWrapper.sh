@@ -20,8 +20,10 @@ do
 done
 echo -n "Please Enter your name:"
 read NAME
-if [ "$EUID" -ne 0 ]; then
+if [ "$EUID" -ne 0 ]
+then
 	echo "This Script requires root permissions to run correctly, please enter your password here:"
+	echo ""
 fi
 sudo chmod 666 /var/run/docker.sock
 git clone https://github.com/ANVSupport/Automatic-CoC

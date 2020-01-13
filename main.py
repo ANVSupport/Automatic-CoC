@@ -3,6 +3,7 @@ import organize as org
 import json
 from datetime import datetime
 import sys
+import argparse
 
 
 """
@@ -13,33 +14,27 @@ import sys
 
 def main():
 	is_Safeguard = False
-	for index, arg in enumerate(sys.argv):
-		if "type" in arg:
-			try:
-				if "SG" in sys.argv[index+1]:
-					is_Safeguard = True
-					print("Type set as SG")
-			except:
-				print("Invalid Arguments") 
-		if "name" in arg:
-			try:
-				Checker_name = sys.are[index+1]
-			except:
-				print("Invalid Arguments") 
-
+	Checker_name = None
+	# Argparse Block
+	parser = argparse.ArgumentParser(description='Blah')
+	parser.add_argument('-t', '--type', default=None)
+	parser.add_argument('-n', '--name', default="No Name")
+	args = parser.parse_args()
 	Report = {}
+	# License Block
 	license_details = agent.Check_License()
 	if license_details is None:
 		license_details = "Error fetching license data.. is BT installed?"
+
 	Report_Details = {}
 	Report_Details["Created On"] = str(datetime.now().strftime("%b %d %Y %H:%M:%S"))
-	Report_Details["Checked By"] = str(Checker_name)
+	Report_Details["Checked By"] = str(args.name)
 	Report["Report Details"] = Report_Details
 	Report["Hardware Details"] = agent.Get_Hardware_Specifications()
 	Report["Installed Apps"] = agent.Check_Installed_Apps("/tmp/apps.json")
 	Report["License"] = license_details
 	Report["Fstab Entry"] = agent.Check_Storage_Mount()
-	if is_Safeguard:
+	if str(args.type).strip() == "SG":
 		Report["Yaml Edits"] = agent.Check_Modified_Files()
 	#print("Writing this to file:")
 	#print(org.Prettify_json(json.dumps(Report, indent=3)))

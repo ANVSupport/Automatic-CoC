@@ -13,7 +13,7 @@ import socket
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s")
-file_handler = logging.FileHandler('coc.log')
+file_handler = logging.FileHandler('autoCoC.log')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.info("Report Started On %s" % (str(datetime.now().strftime("%b %d %Y %H:%M:%S"))))
@@ -23,8 +23,9 @@ def Test_Moxa_Permissions():
 	logname = subprocess.check_output("logname").decode("utf-8").replace("\n","")
 	cameraListjson = "/home/%s/moxa-config/cameraList.json" % (logname)
 	moxascript = "/home/%s/moxa-config/moxa_e1214.sh" % (logname)
-	json_Permissions = subprocess.check_output(["bash", "./PermissionTester.sh", cameraListjson]).decode("utf-8").strip()
-	moxa_Permissions = subprocess.check_output(["bash", "./PermissionTester.sh", moxascript]).decode("utf-8").strip()
+	Permission_script_Path = str(os.path.dirname(os.path.realpath(__file__)))+"/PermissionTester.sh"
+	json_Permissions = subprocess.check_output(["bash", Permission_script_Path, cameraListjson]).decode("utf-8").strip()
+	moxa_Permissions = subprocess.check_output(["bash", Permission_script_Path, moxascript]).decode("utf-8").strip()
 	permissions = {}
 	permissions[cameraListjson] = json_Permissions
 	permissions[moxascript] = moxa_Permissions
@@ -33,11 +34,7 @@ def Test_Moxa_Permissions():
 
 
 def Check_Modified_Files():
-	""" 
-	Sets File Paths
-	Needs to become more generic, right now only for Safeguard (1.20.0)
 
-	"""
 	yaml_json = {}
 	hostname = subprocess.check_output("hostname").decode("utf-8").replace("\n","")
 	logname = subprocess.check_output("logname").decode("utf-8").replace("\n","")
@@ -85,10 +82,10 @@ def Check_Modified_Files():
 
 		with open(broadcaster_file, 'r') as stream:
 			content = stream.read()
-			are_broadcaster_lines_correct = True
+			Broadcaster_lines_correct = True
 			for line in broadcaster_searching_lines:
 				if content.find(line) is -1:
-					are_broadcaster_lines_correct = False
+					Broadcaster_lines_correct = False
 	except FileNotFoundError as err:
 		logger.error("Error While Openig YAML and profile files: \n \t\t %s" % (err))
 		return yaml_json
@@ -98,7 +95,10 @@ def Check_Modified_Files():
 	yaml_json[moxa_mount_path] = "    "+str(moxa_mount_count)+"/1"
 	yaml_json["Moxa Permissions"] = Test_Moxa_Permissions()
 	yaml_json["xhost + inside .profile"] = xhost_count
-	yaml_json["Are Broadcaster edits present"] = are_broadcaster_lines_correct
+	if Broadcaster_lines_correct:
+		yaml_json["SafeGuard Broadcaster Lines Found"] = org.Prettify_list(broadcaster_searching_lines)
+	else:
+		yaml_json["SafeGuard Broadcaster Lines"] = "Not Found"
 	return yaml_json
 
 def Check_Storage_Mount():

@@ -33,3 +33,8 @@ def get_hostname():
 
 def Prettify_json(formatted_json):
     return str(formatted_json).replace("{","").replace("}","").replace(",","").replace('\"',""  )
+def Prettify_list(lst):
+	final_string = ""
+	for item in lst:
+		final_string = final_string+item+"\n"
+	return final_string

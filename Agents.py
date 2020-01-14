@@ -231,8 +231,8 @@ def Check_License():
 		backend_p1.stdout.close()
 		backend_container = str(backend_p2.communicate()).replace("(b\'","")
 		backend_container = backend_container.split()[0]
-		footprint = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-o"]).decode("utf-8").strip())
-		expiration = str(subprocess.check_output(["docker", "exec", "-it", backend_container, "license-ver", "-b"]).decode("utf-8").strip())
+		footprint = str(subprocess.check_output(["docker", "exec", "-i", backend_container, "license-ver", "-o"]).decode("utf-8").strip())
+		expiration = str(subprocess.check_output(["docker", "exec", "-i", backend_container, "license-ver", "-b"]).decode("utf-8").strip())
 		# backend_container = subprocess.run("docker ps", "grep backend_", "awk '{print $1}'") # If it's docker-compose, extracts backend container
 
 	except:

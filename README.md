@@ -7,7 +7,7 @@ wget -qO- https://raw.githubusercontent.com/ANVSupport/Automatic-CoC/master/shel
 ```
 ## Running this script For Safeguard Machines
 ```shellscript
-wget -qO- https://raw.githubusercontent.com/ANVSupport/Automatic-CoC/master/shellWrapper.sh | bash -- --type SG
+wget -qO- https://raw.githubusercontent.com/ANVSupport/Automatic-CoC/master/shellWrapper.sh | bash -s -- -t SG -n <NAME>
 ```
 To run the script first clone the repo, then run 
 ```shellscript

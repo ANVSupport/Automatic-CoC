@@ -31,9 +31,6 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 sudo chmod 666 /var/run/docker.sock
 git clone https://github.com/ANVSupport/Automatic-CoC
-cd Automatic-CoC || exit 1 ## Remove these lines when pushing to master
-git checkout feature/qol   ## And this
-cd ..                      ## And this
 cp Automatic-CoC/apps.json /tmp/apps.json || exit 1
 chmod +x Automatic-CoC/PermissionTester.sh
 if [[ ! -z $TYPE ]] && [[ ! -z $NAME ]]; then
